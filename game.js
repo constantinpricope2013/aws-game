@@ -1,4 +1,29 @@
 // game.js
+
+class Obstacle {
+    constructor() {
+        this.width = 30;
+        this.height = 50;
+        this.x = canvas.width;
+        this.y = canvas.height - this.height;
+        this.speed = 4;
+    }
+
+    draw() {
+        ctx.fillStyle = 'brown';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+
+    update() {
+        this.x -= this.speed;
+    }
+}
+
+let obstacles = [];
+let gameRunning = true;
+let score = 0;
+let spawnTimer = 0;
+const spawnInterval = 100;
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -73,6 +98,13 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Game loop
+function checkCollision(player, obstacle) {
+    return player.x < obstacle.x + obstacle.width &&
+           player.x + player.size > obstacle.x &&
+           player.y < obstacle.y + obstacle.height &&
+           player.y + player.size > obstacle.y;
+}
+
 function gameLoop() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
