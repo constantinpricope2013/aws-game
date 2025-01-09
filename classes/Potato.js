@@ -1,51 +1,63 @@
+// classes/Potato.js
 export class Potato {
     constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.width = 60;  // Adjust based on your potato size
-        this.height = 50; // Adjust based on your potato size
-        this.velocity = 0;
-        this.gravity = 0.5;
-        this.size = 50;
-        this.speed = 5;
-        this.jumpForce = 0;
-        this.gravity = 0.5;
-        this.isJumping = false;
-        this.score = 0;
+        this.reset(x, y);  // Call reset in constructor
     }
 
-    draw(ctx) {
-        ctx.fillStyle = '#brown';
-        ctx.beginPath();
-        ctx.ellipse(this.x, this.y, this.size, this.size * 0.7, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // Add eyes and smile
-        ctx.fillStyle = 'black';
-        ctx.beginPath();
-        ctx.arc(this.x - 10, this.y - 10, 5, 0, Math.PI * 2);
-        ctx.arc(this.x + 10, this.y - 10, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(this.x, this.y + 5, 20, 0, Math.PI);
-        ctx.stroke();
+    reset(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 60;   // Size of potato
+        this.height = 50;
+        this.velocity = 0;
+        this.gravity = 0.5;
+        this.jumpStrength = -12;
     }
 
     update(canvasHeight) {
-        if (this.isJumping) {
-            this.y -= this.jumpForce;
-            this.jumpForce -= this.gravity;
+        // Apply gravity
+        this.velocity += this.gravity;
+        this.y += this.velocity;
+
+        // Ground collision
+        if (this.y + this.height/2 > canvasHeight) {
+            this.y = canvasHeight - this.height/2;
+            this.velocity = 0;
         }
 
-        if (this.y > canvasHeight - this.size) {
-            this.y = canvasHeight - this.size;
-            this.isJumping = false;
+        // Ceiling collision
+        if (this.y - this.height/2 < 0) {
+            this.y = this.height/2;
+            this.velocity = 0;
         }
     }
 
     jump() {
-        if (!this.isJumping) {
-            this.jumpForce = 15;
-            this.isJumping = true;
-        }
+        this.velocity = this.jumpStrength;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        // Draw potato body
+        ctx.fillStyle = '#C4A484';  // Brown color for potato
+        ctx.beginPath();
+        ctx.ellipse(0, 0, this.width/2, this.height/2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw eyes
+        ctx.fillStyle = 'black';
+        ctx.beginPath();
+        ctx.ellipse(-10, -5, 5, 5, 0, 0, Math.PI * 2);
+        ctx.ellipse(10, -5, 5, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw smile
+        ctx.beginPath();
+        ctx.arc(0, 5, 10, 0, Math.PI);
+        ctx.stroke();
+
+        ctx.restore();
     }
 }
