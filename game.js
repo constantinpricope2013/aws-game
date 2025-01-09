@@ -50,12 +50,43 @@ function initializeObstacles() {
 
 // Check collisions
 function checkCollisions() {
+    // Get potato hitbox
+    const potatoBox = {
+        left: potato.x - potato.width/2,
+        right: potato.x + potato.width/2,
+        top: potato.y - potato.height/2,
+        bottom: potato.y + potato.height/2
+    };
+
+    // Check collision with each obstacle
     return obstacles.some(obstacle => {
-        return potato.x < obstacle.x + obstacle.width &&
-               potato.x + potato.width > obstacle.x &&
-               potato.y < obstacle.y + obstacle.height &&
-               potato.y + potato.height > obstacle.y;
+        const obstacleBox = {
+            left: obstacle.x,
+            right: obstacle.x + obstacle.width,
+            top: obstacle.y,
+            bottom: obstacle.y + obstacle.height
+        };
+
+        // Debug visualization (optional)
+        drawHitbox(potatoBox, 'red');
+        drawHitbox(obstacleBox, 'blue');
+
+        return !(potatoBox.right < obstacleBox.left || 
+                potatoBox.left > obstacleBox.right || 
+                potatoBox.bottom < obstacleBox.top || 
+                potatoBox.top > obstacleBox.bottom);
     });
+}
+
+function drawHitbox(box, color) {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(
+        box.left,
+        box.top,
+        box.right - box.left,
+        box.bottom - box.top
+    );
 }
 
 // Update game state

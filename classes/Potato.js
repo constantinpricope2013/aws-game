@@ -2,6 +2,10 @@ export class Potato {
     constructor(x, y) {
         this.x = x;
         this.y = y;
+        this.width = 60;  // Adjust based on your potato size
+        this.height = 50; // Adjust based on your potato size
+        this.velocity = 0;
+        this.gravity = 0.5;
         this.size = 50;
         this.speed = 5;
         this.jumpForce = 0;

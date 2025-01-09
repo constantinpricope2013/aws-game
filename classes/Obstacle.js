@@ -1,14 +1,14 @@
 export class Obstacle {
-    constructor(canvasWidth, canvasHeight) {
-        this.width = 30;
-        this.height = 50;
-        this.x = canvasWidth;
-        this.y = canvasHeight - this.height;
-        this.speed = 4;
+    constructor(x, height, speed) {
+        this.x = x;
+        this.height = height;
+        this.width = 50;
+        this.speed = speed;
+        this.y = canvas.height - this.height; // Position from bottom
     }
 
     draw(ctx) {
-        ctx.fillStyle = 'brown';
+        ctx.fillStyle = 'green';
         ctx.fillRect(this.x, this.y, this.width, this.height);
     }
 
