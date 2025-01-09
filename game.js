@@ -1,126 +1,156 @@
-// game.js
+import { Potato } from './classes/Potato.js';
+import { Obstacle } from './classes/Obstacle.js';
 
-class Obstacle {
-    constructor() {
-        this.width = 30;
-        this.height = 50;
-        this.x = canvas.width;
-        this.y = canvas.height - this.height;
-        this.speed = 4;
-    }
-
-    draw() {
-        ctx.fillStyle = 'brown';
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-    }
-
-    update() {
-        this.x -= this.speed;
-    }
-}
-
-let obstacles = [];
-let gameRunning = true;
-let score = 0;
-let spawnTimer = 0;
-const spawnInterval = 100;
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-class Potato {
-    constructor(x, y) {
-        this.x = x;
-        this.y = y;
-        this.size = 50;
-        this.speed = 5;
-        this.jumpForce = 0;
-        this.gravity = 0.5;
-        this.isJumping = false;
-        this.score = 0;
-    }
-
-    draw() {
-        ctx.fillStyle = '#brown';
-        ctx.beginPath();
-        ctx.ellipse(this.x, this.y, this.size, this.size * 0.7, 0, 0, Math.PI * 2);
-        ctx.fill();
-        // Add eyes and smile
-        ctx.fillStyle = 'black';
-        ctx.beginPath();
-        ctx.arc(this.x - 10, this.y - 10, 5, 0, Math.PI * 2);
-        ctx.arc(this.x + 10, this.y - 10, 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(this.x, this.y + 5, 20, 0, Math.PI);
-        ctx.stroke();
-    }
-
-    update() {
-        // Basic physics
-        if (this.isJumping) {
-            this.y -= this.jumpForce;
-            this.jumpForce -= this.gravity;
-        }
-
-        // Ground collision
-        if (this.y > canvas.height - this.size) {
-            this.y = canvas.height - this.size;
-            this.isJumping = false;
-        }
-    }
-
-    jump() {
-        if (!this.isJumping) {
-            this.jumpForce = 15;
-            this.isJumping = true;
-        }
-    }
-}
+// Set canvas dimensions
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
 // Game state
-const player = new Potato(canvas.width/2, canvas.height - 50);
 let gameRunning = true;
+let currentLevel = 1;
 let score = 0;
+let obstacles = [];
 
-// Controls
-document.addEventListener('keydown', (e) => {
-    switch(e.key) {
-        case 'ArrowLeft':
-            player.x -= player.speed;
-            break;
-        case 'ArrowRight':
-            player.x += player.speed;
-            break;
-        case ' ':
-            player.jump();
-            break;
+// Create potato instance
+const potato = new Potato(100, canvas.height / 2);
+
+// Level configurations
+const levels = {
+    1: {
+        obstacleCount: 3,
+        speed: 5,
+        gap: 300
+    },
+    2: {
+        obstacleCount: 4,
+        speed: 6,
+        gap: 250
+    },
+    3: {
+        obstacleCount: 5,
+        speed: 7,
+        gap: 200
     }
-});
+};
 
-// Game loop
-function checkCollision(player, obstacle) {
-    return player.x < obstacle.x + obstacle.width &&
-           player.x + player.size > obstacle.x &&
-           player.y < obstacle.y + obstacle.height &&
-           player.y + player.size > obstacle.y;
+// Initialize obstacles for current level
+function initializeObstacles() {
+    obstacles = [];
+    const level = levels[currentLevel];
+    
+    for (let i = 0; i < level.obstacleCount; i++) {
+        const x = canvas.width + (i * level.gap);
+        const height = Math.random() * (canvas.height / 2) + 100;
+        obstacles.push(new Obstacle(x, height, level.speed));
+    }
 }
 
-function gameLoop() {
+// Check collisions
+function checkCollisions() {
+    return obstacles.some(obstacle => {
+        return potato.x < obstacle.x + obstacle.width &&
+               potato.x + potato.width > obstacle.x &&
+               potato.y < obstacle.y + obstacle.height &&
+               potato.y + potato.height > obstacle.y;
+    });
+}
+
+// Update game state
+function updateGame() {
+    // Update potato
+    potato.update(canvas.height);
+
+    // Update obstacles
+    obstacles.forEach(obstacle => {
+        obstacle.update();
+        
+        // Reset obstacle when it goes off screen
+        if (obstacle.x + obstacle.width < 0) {
+            obstacle.x = canvas.width;
+            obstacle.height = Math.random() * (canvas.height / 2) + 100;
+            score++;
+            
+            // Check for level up
+            if (score % 10 === 0 && currentLevel < Object.keys(levels).length) {
+                levelUp();
+            }
+        }
+    });
+
+    // Check for collisions
+    if (checkCollisions()) {
+        gameOver();
+    }
+}
+
+// Draw game state
+function drawGame() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Update and draw player
-    player.update();
-    player.draw();
+    // Draw potato
+    potato.draw(ctx);
     
-    // Draw score
+    // Draw obstacles
+    obstacles.forEach(obstacle => obstacle.draw(ctx));
+    
+    // Draw score and level
     ctx.fillStyle = 'black';
-    ctx.font = '24px Arial';
+    ctx.font = '20px Arial';
     ctx.fillText(`Score: ${score}`, 10, 30);
+    ctx.fillText(`Level: ${currentLevel}`, 10, 60);
+}
 
+function levelUp() {
+    currentLevel++;
+    initializeObstacles();
+    // Optional: Show level up message
+    showMessage(`Level ${currentLevel}!`);
+}
+
+function showMessage(text) {
+    ctx.fillStyle = 'black';
+    ctx.font = '40px Arial';
+    ctx.fillText(text, canvas.width/2 - 100, canvas.height/2);
+}
+
+function gameOver() {
+    gameRunning = false;
+    showMessage('Game Over! Press Space to restart');
+}
+
+function resetGame() {
+    score = 0;
+    currentLevel = 1;
+    gameRunning = true;
+    potato.reset(100, canvas.height / 2);
+    initializeObstacles();
+}
+
+// Game loop
+function gameLoop() {
     if (gameRunning) {
+        updateGame();
+        drawGame();
         requestAnimationFrame(gameLoop);
     }
 }
 
+// Event listeners
+document.addEventListener('keydown', (event) => {
+    if (event.code === 'Space') {
+        if (gameRunning) {
+            potato.jump();
+        } else {
+            resetGame();
+            gameLoop();
+        }
+    }
+});
+
+// Start the game
+initializeObstacles();
 gameLoop();
