@@ -1,10 +1,11 @@
+// classes/Obstacle.js
 export class Obstacle {
-    constructor(x, height, speed) {
+    constructor(x, height, speed, canvasHeight) {  // Add canvasHeight parameter
         this.x = x;
         this.height = height;
         this.width = 50;
         this.speed = speed;
-        this.y = canvas.height - this.height; // Position from bottom
+        this.y = canvasHeight - this.height; // Use passed canvasHeight instead of canvas.height
     }
 
     draw(ctx) {
