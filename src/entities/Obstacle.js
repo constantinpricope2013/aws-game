@@ -17,9 +17,12 @@ export class Obstacle extends Entity {
         if (this.x + this.width < 0) {
             this.active = false;
         }
+
+        this.render();
     }
 
     render(context) {
+        console.log('Rendering obstacle at', this.x, this.y);
         context.fillStyle = '#FF4444';
         context.fillRect(this.x, this.y, this.width, this.height);
         

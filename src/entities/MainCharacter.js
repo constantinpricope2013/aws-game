@@ -388,4 +388,47 @@ export class MainCharacter extends Entity {
     loadCustomization() {
         this.customization = JSON.parse(localStorage.getItem('mainCharacterCustomization'));
     }
+
+    jump() {
+        if (!this.isJumping) {
+            this.velocityY = this.jumpForce;
+            this.isJumping = true;
+        }
+    }
+
+    isColliding(other) {
+        return this.x < other.x + other.width &&
+               this.x + this.width > other.x &&
+               this.y < other.y + other.height &&
+               this.y + this.height > other.y;
+    }
+
+    update (deltaTime) {
+        super.update(deltaTime);
+
+        // Update animation frame
+        this.animationFrame += this.animationSpeed * deltaTime;
+        if (this.animationFrame >= 1) {
+            this.animationFrame = 0;
+        }
+
+        // Update score
+        if (!this.isDead) {
+            this.score += 1;
+        }
+
+        // Apply gravity
+        this.velocityY += this.gravity * deltaTime;
+
+        // Update position
+        this.y += this.velocityY * deltaTime;
+
+        // Check if character is on the ground
+        if (this.y >= 400 * this.scale) {
+            this.y = 400 * this.scale;
+            this.isJumping = false;
+        }
+
+        // this.render();
+    }
 }

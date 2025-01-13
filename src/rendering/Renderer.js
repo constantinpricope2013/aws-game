@@ -1,8 +1,16 @@
 // src/rendering/Renderer.js
+
+import { Obstacle } from '../entities/Obstacle.js';
+
 export class Renderer {
-    constructor() {
+    constructor(game) {
+        this.game = game;
         this.canvas = document.getElementById('gameCanvas');
         this.ctx = this.canvas.getContext('2d');
+        this.minObstacleSpawnInterval = 2000;
+        this.spawnIntervalVariance = 1000;
+        const currentTime = performance.now();
+        this.lastObstacleSpawnTime = currentTime;
         this.setupCanvas();
         this.addEventListeners();
     }
@@ -375,41 +383,85 @@ export class Renderer {
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
 
-    shouldSpawnObstacle() {
-        const currentTime = performance.now();
-        const timeSinceLastSpawn = currentTime - this.lastObstacleSpawnTime;
+    // shouldSpawnObstacle() {
+    //     console.log('Checking if obstacle should be spawned...');
+    //     const currentTime = performance.now();
+    //     const timeSinceLastSpawn = currentTime - this.lastObstacleSpawnTime;
         
-        // Get minimum spawn interval based on current level
-        const baseInterval = Math.max(
-            this.minObstacleSpawnInterval - (this.currentLevel * 200), // Decrease interval as level increases
-            1000 // Minimum 1 second between spawns
-        );
+    //     // Get minimum spawn interval based on current level
+    //     const baseInterval = Math.max(
+    //         this.minObstacleSpawnInterval - (this.game.state.level * 200), // Decrease interval as level increases
+    //         1000 // Minimum 1 second between spawns
+    //     );
 
-        // Add random variance to spawn timing
-        const randomVariance = Math.random() * this.spawnIntervalVariance;
-        const spawnInterval = baseInterval + randomVariance;
+    //     // Add random variance to spawn timing
+    //     const randomVariance = Math.random() * this.spawnIntervalVariance;
+    //     const spawnInterval = baseInterval + randomVariance;
 
-        // Check if enough time has passed
-        if (timeSinceLastSpawn >= spawnInterval) {
-            this.lastObstacleSpawnTime = currentTime;
+    //     // Check if enough time has passed
+    //     if (timeSinceLastSpawn >= spawnInterval) {
+    //         this.lastObstacleSpawnTime = currentTime;
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
+
+    shouldSpawnObstacle(deltaTime) {
+        // Update spawn timer
+        this.lastSpawnTime += deltaTime;
+
+        // Check if it's time to spawn
+        if (this.lastSpawnTime >= this.nextSpawnInterval) {
+            this.lastSpawnTime = 0;
+            this.nextSpawnInterval = this.getRandomSpawnInterval();
             return true;
         }
 
         return false;
     }
 
-    
     spawnObstacle() {
-        const height = Math.random() * 150 + 100; // Random height between 100-250
-        const obstacle = new Obstacle(
-            800, // Start from right side of screen
-            600 - height, // Position from bottom
-            50, // width
-            height,
-            200 // speed
-        );
-        this.obstacles.push(obstacle);
+        // Get the last obstacle's position
+        const lastObstacle = this.game.obstacles[this.obstacles.length - 1];
+        
+        // Only spawn if there's enough space
+        if (!lastObstacle || 
+            lastObstacle.x < this.renderer.canvas.width - 300) {
+            
+            const obstacle = new Obstacle(
+                this.renderer.canvas.width,
+                this.renderer.canvas.height - 100,
+                50,
+                50,
+                200 * this.gameSpeed // Initial speed affected by game speed
+            );
+            
+            this.games.obstacles.push(obstacle);
+            console.log('Obstacle spawned with speed:', obstacle.speed);
+        }
     }
+
+
+    getRandomSpawnInterval() {
+        // Get random time between min and max spawn intervals
+        return this.minSpawnInterval + 
+               Math.random() * (this.maxSpawnInterval - this.minSpawnInterval);
+    }
+
+
+    // spawnObstacle() {
+    //     console.log('Spawning obstacle...');
+    //     const height = Math.random() * 150 + 100; // Random height between 100-250
+    //     const obstacle = new Obstacle(
+    //         800, // Start from right side of screen
+    //         600 - height, // Position from bottom
+    //         50, // width
+    //         height,
+    //         200 // speed
+    //     );
+    //     this.game.obstacles.push(obstacle);
+    // }
 
     cleanup() {
         // Clear all obstacles

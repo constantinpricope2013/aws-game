@@ -9,6 +9,7 @@ export class GameLoop {
         this.fps = 0;
         
         // Bind the game loop to maintain correct context
+        
         this.loop = this.loop.bind(this);
     }
 
@@ -26,6 +27,15 @@ export class GameLoop {
         
         // Start the game loop
         requestAnimationFrame(this.loop);
+    }
+
+    
+    setupInputHandling() {
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                this.player.jump();
+            }
+        });
     }
 
     loop(currentTime) {
